@@ -10,7 +10,14 @@ def create_app():
     app.config.from_object(Config)
     jwt.init_app(app)
 
-    from .auth.routes import auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-
+    from app.auth.routes import auth_bp
+    from app.teams.routes import teams_bp
+    from app.documents.routes import documents_bp
+    from app.evaluations.routes import evaluations_bp
+    
+    app.register_blueprint(auth_bp)  # Register only once
+    app.register_blueprint(teams_bp)
+    app.register_blueprint(documents_bp)
+    app.register_blueprint(evaluations_bp)
+    
     return app

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 from .models import User
-from app.db import get_db
+from app.db import get_db, get_user_by_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -12,22 +12,23 @@ def register():
     password = data.get('password')
     role = data.get('role', 'Student')
 
-    db = get_db()
-    if db.get_user_by_email(email):
+    # Use the imported function, not db.get_user_by_email()
+    if get_user_by_email(email):
         return jsonify({"message": "User already exists"}), 400
     
     user = User(email, password, role)
+    db = get_db()
     db.users.insert_one(user.__dict__)
     return jsonify({"message": "User registered successfully"}), 201
 
 @auth_bp.route('/login', methods=['POST'])
-def register():
+def login():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
 
-    db = get_db()
-    user = db.get_user_by_email(email)
+    # Use the imported function directly
+    user = get_user_by_email(email)
 
     if not user:
         return jsonify({"message": "Invalid credentials"}), 401
