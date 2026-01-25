@@ -37,5 +37,6 @@ def login():
     if not temp_user.check_password(password):
         return jsonify({"message": "Invalid credentials"}), 401
     
-    token = create_access_token(identity={"email": email, "role": user["role"]})
+    # Use email as identity and role as additional claim
+    token = create_access_token(identity=email, additional_claims={"role": user["role"]})
     return jsonify({"access_token": token}), 200

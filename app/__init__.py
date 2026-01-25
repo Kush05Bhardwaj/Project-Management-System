@@ -2,6 +2,8 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from .config import Config
 from .db import get_db
+from .teams.routes import teams_bp
+
 
 jwt = JWTManager()
 
