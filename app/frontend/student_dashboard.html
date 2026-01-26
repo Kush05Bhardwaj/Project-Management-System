@@ -1,9 +1,32 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
 <h3>Student Dashboard</h3>
+
+{% if team %}
+<h5>Team: {{ team.name }}</h5>
+
+<h6>Documents</h6>
 <ul>
-    <li>Upload Documents</li>
-    <li>View Status</li>
-    <li>View Result</li>
+  {% for doc in docs %}
+    <li>{{ doc.filename }} - {{ doc.status }}</li>
+  {% endfor %}
 </ul>
+
+{% if result %}
+<div class="alert alert-info">
+  <strong>Marks:</strong> {{ result.marks }} <br>
+  <strong>Remarks:</strong> {{ result.remarks }}
+</div>
+{% endif %}
+
+
+{% else %}
+<p>You are not in a team yet.</p>
+{% endif %}
+
+<form method="POST" action="/ui/upload" enctype="multipart/form-data">
+  <input type="file" name="file" class="form-control my-2" required>
+  <button class="btn btn-success">Upload</button>
+</form>
+
 {% endblock %}

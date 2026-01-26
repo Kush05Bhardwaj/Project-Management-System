@@ -3,12 +3,14 @@ from flask_jwt_extended import JWTManager
 from .config import Config
 from .logger import setup_logger
 from .ui.routes import ui_bp
+import os
 
 jwt = JWTManager()
 logger = setup_logger()
 
 def create_app():
-    app = Flask(__name__)
+    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
+    app = Flask(__name__, template_folder=template_dir)
     app.config.from_object(Config)
     jwt.init_app(app)
 
@@ -21,7 +23,7 @@ def create_app():
     app.register_blueprint(teams_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(evaluations_bp)
-    app.register_blueprint(ui_bp, url_prefix='/ui')
+    app.register_blueprint(ui_bp)  # No url_prefix, so routes are at root level
 
     @app.errorhandler(404)
     def not_found(e):

@@ -2,8 +2,19 @@
 {% block content %}
 <h3>Mentor Dashboard</h3>
 <ul>
-    <li>View Team Docs</li>
-    <li>Approve / Rejects</li>
-    <li>Submit Marks</li>
+  {% for doc in docs %}
+    <div>
+        {{ doc.filename }} - {{ doc.status }}
+        <form method="post" action="/ui/review">
+        <input type="hidden" name="filename" value="{{ doc.filename }}">
+        <select name="status">
+            <option value="approved">Approve</option>
+            <option value="rejected">Reject</option>
+        </select>
+        <input name="comment" placeholder="Comment">
+        <button>Submit</button>
+        </form>
+    </div>
+    {% endfor %}
 </ul>
 {% endblock %}

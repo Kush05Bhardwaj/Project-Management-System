@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Mini PMS{% endblock %}
+
+{% block nav_content %}
+<span>👨‍🎓 Student</span>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome, Student!</h2>
+    {% if team %}
+        <p><strong>Team:</strong> {{ team.name }}</p>
+        <p><strong>Mentor:</strong> {{ team.mentor_email }}</p>
+    {% else %}
+        <p>You are not assigned to any team yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📄 Upload Document</h3>
+    <form action="/documents/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>📋 My Documents</h3>
+    {% if docs %}
+        <ul>
+        {% for doc in docs %}
+            <li>{{ doc.filename }} - Status: {{ doc.status }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No documents uploaded yet.</p>
+    {% endif %}
+</div>
+
+{% if result %}
+<div class="card">
+    <h3>🎯 Evaluation Result</h3>
+    <p><strong>Marks:</strong> {{ result.marks }}</p>
+    <p><strong>Remarks:</strong> {{ result.remarks }}</p>
+</div>
+{% endif %}
+{% endblock %}
