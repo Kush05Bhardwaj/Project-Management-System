@@ -1,4 +1,5 @@
 import os
+import uuid
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
@@ -9,8 +10,13 @@ from app.auth.utils import role_required
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "docx"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
 documents_bp = Blueprint('documents', __name__, url_prefix='/documents')
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Student uploads documents
 @documents_bp.route('/upload', methods=['POST'])
@@ -20,10 +26,21 @@ def upload_documents():
     email = get_jwt_identity()  # This is now just the email string
     file = request.files.get("file")
 
-    if not file:
+    if not file or file.filename == "":
         return jsonify({"msg": "No file uploaded"}), 400
 
-    filename = secure_filename(file.filename)
+    if not allowed_file(file.filename):
+        return jsonify({"msg": "File type not allowed"}), 400
+
+    if file.content_length > MAX_FILE_SIZE:
+        return jsonify({"msg": "File size exceeds 5 MB"}), 400
+
+    file.seek(0, os.SEEK_END)
+    file.content_length = file.tell()
+    file.seek(0)
+
+    ext = file.filename.rsplit('.', 1)[1]
+    filename = f"{uuid.uuid4()}.{ext}"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
