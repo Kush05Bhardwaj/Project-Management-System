@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from app.db import get_db
 from .models import Document
 from app.auth.utils import role_required
+from app.local_cache import get, set
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -39,17 +40,22 @@ def upload_documents():
     file.content_length = file.tell()
     file.seek(0)
 
-    ext = file.filename.rsplit('.', 1)[1]
-    filename = f"{uuid.uuid4()}.{ext}"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-
     db = get_db()
     team = db.teams.find_one({"students": email})
     if not team:
         return jsonify({"msg": "Student not in any team"}), 400
 
-    doc = Document(filename, email, team["name"])
+    # Create team-specific folder
+    team_folder = os.path.join("uploads", "teams", team["name"])
+    os.makedirs(team_folder, exist_ok=True)
+
+    # Generate unique filename
+    ext = file.filename.rsplit('.', 1)[1]
+    unique_name = f"{uuid.uuid4()}.{ext}"
+    filepath = os.path.join(team_folder, unique_name)
+    file.save(filepath)
+
+    doc = Document(unique_name, email, team["name"])
     db.documents.insert_one(doc.__dict__)
 
     return jsonify({"msg": "File uploaded", "status": doc.status}), 201
@@ -70,6 +76,15 @@ def mentor_docs():
     team_names = [t["name"] for t in teams]
 
     docs = list(db.documents.find({"team_name": {"$in": team_names}}).skip((page - 1) * per_page).limit(per_page))
+    return jsonify(docs), 200
+
+# Local Cache for Mentor Docs
+    cached = get("mentor_docs")
+    if cached:
+        return jsonify(cached), 200
+
+    docs = ...
+    set("mentor_docs", docs)
     return jsonify(docs), 200
 
 
