@@ -208,7 +208,7 @@ UPLOAD_FOLDER=uploads/
 
 ## 👨‍💻 Author
 
-**Kush Bhardwaj**  
+**Kushagra Bhardwaj**  
 GitHub: [@Kush05Bhardwaj](https://github.com/Kush05Bhardwaj)  
 Repository: [Project-Management-System](https://github.com/Kush05Bhardwaj/Project-Management-System)
 
@@ -218,12 +218,3 @@ Repository: [Project-Management-System](https://github.com/Kush05Bhardwaj/Projec
 
 MIT License - Open source and free to use.
 
----
-
-<div align="center">
-
-**⭐ Star this repo if you find it useful! ⭐**
-
-Made with ❤️ using Flask & MongoDB
-
-</div>
