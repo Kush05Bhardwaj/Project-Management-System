@@ -12,6 +12,12 @@ def register():
     password = data.get('password')
     role = data.get('role', 'Student')
 
+    if len(password) < 6:
+        return jsonify({"message": "Password must be at least 6 characters long"}), 400
+
+    if role not in ['Admin', 'Mentor', 'Student']:
+        return jsonify({"message": "Invalid role"}), 400
+
     # Use the imported function, not db.get_user_by_email()
     if get_user_by_email(email):
         return jsonify({"message": "User already exists"}), 400
