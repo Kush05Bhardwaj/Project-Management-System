@@ -61,12 +61,15 @@ def upload_documents():
 @role_required("mentor")
 def mentor_docs():
     email = get_jwt_identity()  # This is now just the email string
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 10))
+    
     db = get_db()
 
     teams = db.teams.find({"mentor_email": email})
     team_names = [t["name"] for t in teams]
 
-    docs = list(db.documents.find({"team_name": {"$in": team_names}}, {"_id": 0}))
+    docs = list(db.documents.find({"team_name": {"$in": team_names}}).skip((page - 1) * per_page).limit(per_page))
     return jsonify(docs), 200
 
 

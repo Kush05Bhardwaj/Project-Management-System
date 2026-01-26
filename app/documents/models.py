@@ -8,5 +8,3 @@ class Document:
         self.status = "pending"
         self.uploaded_at = datetime.utcnow()  # Call the function!
         self.review_comment = None
-
-doc = Document(filename, user["email"], team["name"])
