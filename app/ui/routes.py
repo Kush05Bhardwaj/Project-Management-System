@@ -64,7 +64,7 @@ def student_dashboard():
         docs = list(db.documents.find({"team_name": team["name"]}))
         result = db.evaluations.find_one({"team_name": team["name"]}, {"_id": 0})
 
-    return render_template('student_dashboard.html', team=team, docs=docs, result=result)
+    return render_template('dashboard_student.html', team=team, docs=docs, result=result)
 
 @ui_bp.route('/mentor')
 @jwt_required()
@@ -75,13 +75,13 @@ def mentor_dashboard():
 
     teams = list(db.teams.find({"mentor_email": email}))
     docs = list(db.documents.find({"team_name": {"$in": [team["name"] for team in teams]}}, {"_id": 0}))
-    return render_template('mentor_dashboard.html')
+    return render_template('dashboard_mentor.html')
 
 @ui_bp.route('/admin')
 @jwt_required()
 @role_required('admin')
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    return render_template('dashboard_admin.html')
 
 @ui_bp.route('/upload', methods=['POST'])
 @jwt_required()

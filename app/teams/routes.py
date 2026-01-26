@@ -47,7 +47,7 @@ def add_student():
 
     return jsonify({"message": "Student added to team successfully"}), 200
 
-# Mentor views their team
+# Student views their team
 @teams_bp.route("/my-team", methods=["GET"])
 @jwt_required()
 @role_required("student")
@@ -56,5 +56,24 @@ def student_team():
     db = get_db()
     team = db.teams.find_one({"students": email}, {"_id": 0})
     return jsonify(team), 200
+
+# Mentor views their teams
+@teams_bp.route("/my-teams", methods=["GET"])
+@jwt_required()
+@role_required("mentor")
+def mentor_teams():
+    email = get_jwt_identity()
+    db = get_db()
+    teams = list(db.teams.find({"mentor_email": email}, {"_id": 0}))
+    return jsonify(teams), 200
+
+# Admin views all teams
+@teams_bp.route("/all", methods=["GET"])
+@jwt_required()
+@role_required("admin")
+def all_teams():
+    db = get_db()
+    teams = list(db.teams.find({}, {"_id": 0}))
+    return jsonify(teams), 200
 
 

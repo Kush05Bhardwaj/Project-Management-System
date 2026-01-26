@@ -3,46 +3,171 @@
 {% block title %}Student Dashboard - Mini PMS{% endblock %}
 
 {% block nav_content %}
-<span>👨‍🎓 Student</span>
+<span>👨‍🎓 Student Dashboard</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .upload-section {
+        border: 2px dashed #667eea;
+        padding: 30px;
+        text-align: center;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .upload-section input[type="file"] {
+        display: none;
+    }
+    .upload-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+    .upload-btn:hover {
+        transform: translateY(-2px);
+    }
+    .file-label {
+        cursor: pointer;
+        padding: 12px 30px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    .file-label:hover {
+        background: #e0e0e0;
+    }
+    .doc-list {
+        list-style: none;
+        padding: 0;
+    }
+    .doc-item {
+        background: #f9f9f9;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .status-pending {
+        background: #ffc107;
+        color: #000;
+    }
+    .status-approved {
+        background: #28a745;
+        color: white;
+    }
+    .status-rejected {
+        background: #dc3545;
+        color: white;
+    }
+    .result-card {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Welcome, Student!</h2>
+<div class="info-card">
+    <h2>👋 Welcome, Student!</h2>
     {% if team %}
-        <p><strong>Team:</strong> {{ team.name }}</p>
-        <p><strong>Mentor:</strong> {{ team.mentor_email }}</p>
+        <p><strong>📚 Team:</strong> {{ team.name }}</p>
+        <p><strong>👨‍🏫 Mentor:</strong> {{ team.mentor_email }}</p>
     {% else %}
-        <p>You are not assigned to any team yet.</p>
+        <p>⚠️ You are not assigned to any team yet. Please contact your admin.</p>
     {% endif %}
 </div>
 
 <div class="card">
-    <h3>📄 Upload Document</h3>
-    <form action="/documents/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Upload</button>
-    </form>
+    <h3>� Upload Document</h3>
+    <div class="upload-section">
+        <form action="/documents/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <p>📄 Upload your project documents (PDF, Images, DOCX)</p>
+            <label for="file" class="file-label">
+                📁 Choose File
+            </label>
+            <input type="file" name="file" id="file" required accept=".pdf,.png,.jpg,.jpeg,.docx">
+            <p id="fileName" style="margin: 10px 0; color: #666;"></p>
+            <button type="submit" class="upload-btn">🚀 Upload</button>
+        </form>
+    </div>
 </div>
 
 <div class="card">
     <h3>📋 My Documents</h3>
     {% if docs %}
-        <ul>
+        <ul class="doc-list">
         {% for doc in docs %}
-            <li>{{ doc.filename }} - Status: {{ doc.status }}</li>
+            <li class="doc-item">
+                <span>📄 {{ doc.filename }}</span>
+                <span class="status-badge status-{{ doc.status }}">{{ doc.status|upper }}</span>
+            </li>
         {% endfor %}
         </ul>
     {% else %}
-        <p>No documents uploaded yet.</p>
+        <p style="text-align: center; color: #999; padding: 20px;">No documents uploaded yet. Upload your first document above! 👆</p>
     {% endif %}
 </div>
 
 {% if result %}
-<div class="card">
+<div class="result-card">
     <h3>🎯 Evaluation Result</h3>
-    <p><strong>Marks:</strong> {{ result.marks }}</p>
-    <p><strong>Remarks:</strong> {{ result.remarks }}</p>
+    <p style="font-size: 36px; margin: 10px 0;"><strong>{{ result.marks }}/100</strong></p>
+    <p><strong>💬 Remarks:</strong> {{ result.remarks }}</p>
+    <p style="font-size: 12px; opacity: 0.8;">Evaluated on: {{ result.created_at }}</p>
 </div>
 {% endif %}
+
+<script>
+    // Show selected filename
+    document.getElementById('file').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || '';
+        document.getElementById('fileName').textContent = fileName ? '✓ ' + fileName : '';
+    });
+
+    // Handle form submission
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch('/documents/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert('✅ ' + result.msg);
+                location.reload();
+            } else {
+                alert('❌ ' + result.msg);
+            }
+        } catch (error) {
+            alert('❌ Upload failed: ' + error.message);
+        }
+    });
+</script>
 {% endblock %}

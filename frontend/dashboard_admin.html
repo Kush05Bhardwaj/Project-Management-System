@@ -3,21 +3,256 @@
 {% block title %}Admin Dashboard - Mini PMS{% endblock %}
 
 {% block nav_content %}
-<span>👨‍💼 Admin</span>
+<span>👨‍💼 Admin Dashboard</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 42px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .form-section {
+        background: #f9f9f9;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+    }
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .table th {
+        background: #667eea;
+        color: white;
+        padding: 12px;
+        text-align: left;
+    }
+    .table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    .table tr:hover {
+        background: #f9f9f9;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Welcome, Admin!</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>👥 Users</h3>
+        <div class="stat-number" id="userCount">0</div>
+    </div>
+    <div class="stat-card">
+        <h3>📚 Teams</h3>
+        <div class="stat-number" id="teamCount">0</div>
+    </div>
+    <div class="stat-card">
+        <h3>📄 Documents</h3>
+        <div class="stat-number" id="docCount">0</div>
+    </div>
+    <div class="stat-card">
+        <h3>🎯 Evaluations</h3>
+        <div class="stat-number" id="evalCount">0</div>
+    </div>
 </div>
 
 <div class="card">
-    <h3>👥 Manage Teams</h3>
-    <p>Create and manage teams.</p>
+    <h3>➕ Create New Team</h3>
+    <form class="form-section" id="createTeamForm">
+        <div class="form-group">
+            <label for="team_name">Team Name:</label>
+            <input type="text" name="name" id="team_name" required placeholder="e.g., Team Alpha">
+        </div>
+        <div class="form-group">
+            <label for="mentor_email">Mentor Email:</label>
+            <input type="email" name="mentor_email" id="mentor_email" required placeholder="mentor@example.com">
+        </div>
+        <button type="submit" class="btn-primary">🚀 Create Team</button>
+    </form>
 </div>
 
 <div class="card">
-    <h3>📊 View All Evaluations</h3>
-    <p>Monitor all team evaluations.</p>
+    <h3>👨‍🎓 Add Student to Team</h3>
+    <form class="form-section" id="addStudentForm">
+        <div class="form-group">
+            <label for="select_team">Select Team:</label>
+            <select name="team_name" id="select_team" required>
+                <option value="">-- Select Team --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="student_email">Student Email:</label>
+            <input type="email" name="student_email" id="student_email" required placeholder="student@example.com">
+        </div>
+        <button type="submit" class="btn-primary">➕ Add Student</button>
+    </form>
 </div>
+
+<div class="card">
+    <h3>📊 All Evaluations</h3>
+    <table class="table" id="evalTable">
+        <thead>
+            <tr>
+                <th>Team</th>
+                <th>Mentor</th>
+                <th>Marks</th>
+                <th>Remarks</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="evalList">
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 30px; color: #999;">Loading evaluations...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Load all data
+    async function loadData() {
+        try {
+            // Fetch evaluations
+            const evalResponse = await fetch('/evaluations/all');
+            const evaluations = await evalResponse.json();
+            
+            // Update stats
+            document.getElementById('evalCount').textContent = evaluations.length || 0;
+            
+            // Populate evaluations table
+            const evalList = document.getElementById('evalList');
+            if (evaluations.length === 0) {
+                evalList.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: #999;">No evaluations yet</td></tr>';
+            } else {
+                evalList.innerHTML = evaluations.map(eval => `
+                    <tr>
+                        <td>${eval.team_name}</td>
+                        <td>${eval.mentor_email}</td>
+                        <td><strong>${eval.marks}/100</strong></td>
+                        <td>${eval.remarks}</td>
+                        <td>${new Date(eval.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Fetch teams to populate dropdown
+            const teamsResponse = await fetch('/teams/all');
+            if (teamsResponse.ok) {
+                const teams = await teamsResponse.json();
+                document.getElementById('teamCount').textContent = teams.length || 0;
+                
+                const teamSelect = document.getElementById('select_team');
+                teams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.name;
+                    option.textContent = team.name;
+                    teamSelect.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    }
+
+    // Create team
+    document.getElementById('createTeamForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const response = await fetch('/teams/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert('✅ ' + result.message);
+                this.reset();
+                loadData();
+            } else {
+                alert('❌ ' + result.message);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    });
+
+    // Add student to team
+    document.getElementById('addStudentForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const response = await fetch('/teams/add-student', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert('✅ ' + result.message);
+                this.reset();
+            } else {
+                alert('❌ ' + result.message);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    });
+
+    // Load data on page load
+    loadData();
+</script>
 {% endblock %}
