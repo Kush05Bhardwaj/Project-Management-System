@@ -2,6 +2,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from .config import Config
 from .logger import setup_logger
+from .ui.routes import ui_bp
 
 jwt = JWTManager()
 logger = setup_logger()
@@ -20,7 +21,7 @@ def create_app():
     app.register_blueprint(teams_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(evaluations_bp)
-    
+    app.register_blueprint(ui_bp, url_prefix='/ui')
 
     @app.errorhandler(404)
     def not_found(e):
