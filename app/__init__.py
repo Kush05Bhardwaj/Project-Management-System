@@ -1,17 +1,24 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from .config import Config
 from .logger import setup_logger
-from .ui.routes import ui_bp
 import os
 
 jwt = JWTManager()
 logger = setup_logger()
 
 def create_app():
-    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
-    app = Flask(__name__, template_folder=template_dir)
+    app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # Enable CORS for React frontend
+    CORS(app, 
+         origins=["http://localhost:5173", "http://localhost:3000"],  # Vite and CRA dev servers
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    
     jwt.init_app(app)
 
     from app.auth.routes import auth_bp
@@ -19,11 +26,10 @@ def create_app():
     from app.documents.routes import documents_bp
     from app.evaluations.routes import evaluations_bp
     
-    app.register_blueprint(auth_bp)  # Register only once
+    app.register_blueprint(auth_bp)
     app.register_blueprint(teams_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(evaluations_bp)
-    app.register_blueprint(ui_bp)  # No url_prefix, so routes are at root level
 
     @app.errorhandler(404)
     def not_found(e):
